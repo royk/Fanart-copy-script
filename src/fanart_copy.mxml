@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="windowedapplication1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
+			{
+				copyFanart("k:\\movies", "k:\\movies_fanart");
+				copyFanart("k:\\tv", "k:\\tv_fanart");
+				this.exit();
+			}
+			
+			private function copyFanart(from:String, to:String):void
+			{
+				var resultShows:Vector.<File> = crawlDirectory(new File(from), 1);
+				var target:File = new File(to);
+				for (var i:int=0; i<resultShows.length; i++)
+				{
+					var file:File = resultShows[i];
+					var targetPath:String = target.nativePath+"\\"+i+"."+file.extension;
+					file.copyTo(new File(targetPath), true);
+				}
+			}
+			
+			public function crawlDirectory(dir:File, maxDepth:int, curDepth:int=0):Vector.<File>
+			{
+				var result	:Vector.<File> 	= new Vector.<File>();
+				var files	:Array;
+				var file	:File;
+				var i		:int;
+				if (curDepth>maxDepth)
+					return result;
+				if (dir && dir.exists && dir.isDirectory)
+				{
+					files = dir.getDirectoryListing();
+					for (i=0; i<files.length; i++)
+					{
+						file = files[i] as File;
+						if (file.exists)
+						{
+							
+							if (file.isDirectory)
+							{
+								var seasonMatch:Array = file.name.match(/s\d+/);
+								if (seasonMatch==null)
+								{
+									result = result.concat(crawlDirectory(file,maxDepth, curDepth+1))
+								}
+							}
+							else 
+							{
+								if (file.extension.indexOf("jp")!=-1 && file.name.indexOf("fanart")!=-1)
+								{
+									result.push(file);
+								}
+							}
+						}
+					}
+				}
+				return result;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:WindowedApplication>
